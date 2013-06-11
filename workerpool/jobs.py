@@ -31,10 +31,10 @@ class SimpleJob(Job):
     list, the method will execute r = method(*args) or r = method(**args),
     depending on args' type, and perform result.put(r).
     """
-    def __init__(self, result, method, args=[]):
+    def __init__(self, result, method, args=None):
         self.result = result
         self.method = method
-        self.args = args
+        self.args = args or []
 
     def run(self):
         if isinstance(self.args, list) or isinstance(self.args, tuple):
@@ -46,3 +46,22 @@ class SimpleJob(Job):
     def _return(self, r):
         "Handle return value by appending to the ``self.result`` queue."
         self.result.put(r)
+
+
+class MapJob(SimpleJob):
+    """
+    Special job used in `pool.map` used to retain order of arguments
+    and results.
+    """
+    def __init__(self, index, result, method, args=None):
+        self.index = index
+        self.result = result
+        self.method = method
+        self.args = args or []
+
+    def _return(self, r):
+        """
+        Returns the output of the job in addition to the index it
+        should have in the results list.
+        """
+        self.result.put((self.index, r))

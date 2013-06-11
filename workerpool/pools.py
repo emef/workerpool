@@ -12,7 +12,7 @@ if not hasattr(Queue, 'task_done'):
     from QueueWrapper import Queue
 
 from workers import Worker
-from jobs import SimpleJob, SuicideJob
+from jobs import MapJob, SuicideJob
 
 
 __all__ = ['WorkerPool', 'default_worker_factory']
@@ -95,16 +95,16 @@ class WorkerPool(Queue):
         "block until done."
         results = Queue()
         args = zip(*seq)
-        for seq in args:
-            j = SimpleJob(results, fn, seq)
+        for i, seq in enumerate(args):
+            j = MapJob(i, results, fn, seq)
             self.put(j)
 
         # Aggregate results
-        r = []
-        for i in xrange(len(args)):
-            r.append(results.get())
-
-        return r
+        self.join()
+        sentinel = object()
+        results.put(sentinel)
+        r = sorted(iter(results.get, sentinel))
+        return [x[1] for x in r]
 
     def wait(self):
         "DEPRECATED: Use join() instead."
