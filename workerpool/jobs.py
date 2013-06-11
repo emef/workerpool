@@ -48,7 +48,7 @@ class SimpleJob(Job):
         self.result.put(r)
 
 
-class MapJob(SimpleJob):
+class OrderedSimpleJob(SimpleJob):
     """
     Special job used in `pool.map` used to retain order of arguments
     and results.

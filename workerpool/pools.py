@@ -12,7 +12,7 @@ if not hasattr(Queue, 'task_done'):
     from QueueWrapper import Queue
 
 from workers import Worker
-from jobs import MapJob, SuicideJob
+from jobs import OrderedSimpleJob, SuicideJob
 
 
 __all__ = ['WorkerPool', 'default_worker_factory']
@@ -96,7 +96,7 @@ class WorkerPool(Queue):
         results = Queue()
         args = zip(*seq)
         for i, seq in enumerate(args):
-            j = MapJob(i, results, fn, seq)
+            j = OrderedSimpleJob(i, results, fn, seq)
             self.put(j)
 
         # Aggregate results

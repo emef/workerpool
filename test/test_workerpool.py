@@ -19,7 +19,7 @@ class TestWorkerPool(unittest.TestCase):
             for pool in self._pools:
                 pool.shutdown()
 
-    def pool(self, *args):
+    def get_workerpool(self, *args):
         p = workerpool.WorkerPool(*args)
         self._pools.append(p)
         return p
@@ -32,48 +32,42 @@ class TestWorkerPool(unittest.TestCase):
 
     def test_map(self):
         "Map a list to a method to a pool of two workers."
-        pool = self.pool(2)
+        pool = self.get_workerpool(2)
 
         r = pool.map(self.double, [1, 2, 3, 4, 5])
         self.assertEquals(r, [2, 4, 6, 8, 10])
-        pool.shutdown()
 
     def test_map_multiparam(self):
         "Test map with multiple parameters."
-        pool = self.pool(2)
+        pool = self.get_workerpool(2)
         r = pool.map(self.add, [1, 2, 3], [4, 5, 6])
         self.assertEquals(r, [5, 7, 9])
-        pool.shutdown()
 
     def test_wait(self):
         "Make sure each task gets marked as done so pool.wait() works."
-        pool = self.pool(5)
+        pool = self.get_workerpool(5)
         q = Queue()
         for i in xrange(100):
             pool.put(workerpool.SimpleJob(q, sum, [range(5)]))
         pool.wait()
-        pool.shutdown()
 
     def test_init_size(self):
-        pool = self.pool(1)
+        pool = self.get_workerpool(1)
         self.assertEquals(pool.size(), 1)
-        pool.shutdown()
 
     def test_shrink(self):
-        pool = self.pool(1)
+        pool = self.get_workerpool(1)
         pool.shrink()
         self.assertEquals(pool.size(), 0)
-        pool.shutdown()
 
     def test_grow(self):
-        pool = self.pool(1)
+        pool = self.get_workerpool(1)
         pool.grow()
         self.assertEquals(pool.size(), 2)
-        pool.shutdown()
 
     def test_changesize(self):
         "Change sizes and make sure pool doesn't work with no workers."
-        pool = self.pool(5)
+        pool = self.get_workerpool(5)
         for i in xrange(5):
             pool.grow()
         self.assertEquals(pool.size(), 10)
@@ -93,4 +87,3 @@ class TestWorkerPool(unittest.TestCase):
         else:
             assert False, "Something returned a result, even though we are"
             "expecting no workers."
-        pool.shutdown()
